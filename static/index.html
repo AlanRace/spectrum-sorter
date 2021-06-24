@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Spectra Sorter</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+      #datasetTable tbody tr {
+          height: 50px;
+      }
+      #datasetTable img {
+          max-width: 50px;
+          max-height: 50px;
+      }
+      .spectrum-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        grid-gap: 10px;
+        grid-auto-rows: 100px;
+    }
+    .root {
+        display: flex;
+        justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+    <div id="output"></div>
+    
+    <!--<canvas id="overviewCanvas" width="500px" height="500px"></canvas>-->
+    <script src="js/app.bundle.js"></script>
+</body>
+</html>

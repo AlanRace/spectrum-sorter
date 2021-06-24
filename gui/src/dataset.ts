@@ -34,15 +34,13 @@ export class Dataset {
     numSpectra: number
     data: Float64Array
 
-    unsortedSpectra: Spectrum[]
-    toKeepSpectra: Spectrum[]
+    spectra: Spectrum[]
     discardSpectra: Spectrum[]
 
     constructor(name: string) {
         this.name = name;
 
-        this.unsortedSpectra = new Array();
-        this.toKeepSpectra = new Array();
+        this.spectra = new Array();
         this.discardSpectra = new Array();
     }
 
@@ -51,12 +49,12 @@ export class Dataset {
 
         dataset.numSpectra = json['NumSpectra']
 
-        dataset.unsortedSpectra = new Array(dataset.numSpectra)
+        dataset.spectra = new Array(dataset.numSpectra)
 
         let promises: Array<Promise<void>> = new Array();
 
         for (let i = 0; i < dataset.numSpectra; i++) {
-            promises.push(dataset.getSpectrum(i).then(spectrum => { dataset.unsortedSpectra[i] = spectrum;}))
+            promises.push(dataset.getSpectrum(i).then(spectrum => { dataset.spectra[i] = spectrum;}))
         }
 
         Promise.all(promises);

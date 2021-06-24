@@ -19,12 +19,18 @@ interface AppState {
 let spectrumWidth = 250
 let spectrumHeight = 80
 
+function useForceUpdate(){
+    const [value, setValue] = useState(0); // integer state
+    return () => setValue(value => value + 1); // update the state to force render
+}
  
 export function App(props: AppProps) {
 
     const [datasets, setDatasets] = useState<Map<string, Dataset>>();
     const [datasetToView, setDatasetToView] = useState<Dataset>();
     const [spectrumToView, setSpectrumToView] = useState<Spectrum>();
+
+    const forceUpdate = useForceUpdate();
 
     // Perform once when first initialising the app: load datasets
     useEffect(() => {
@@ -65,15 +71,16 @@ export function App(props: AppProps) {
             return;
         }
 
-        console.log(source)
-        console.log(destination)
-        if(source.droppableId == "unsorted" && destination.droppableId == "toKeep") {
-            datasetToView.toKeepSpectra.push(datasetToView.unsortedSpectra[source.index]);
-            datasetToView.unsortedSpectra.splice(source.index, 1);
-        } else if(source.droppableId == "toKeep" && destination.droppableId == "unsorted") {
-            datasetToView.unsortedSpectra.push(datasetToView.toKeepSpectra[source.index]);
-            datasetToView.toKeepSpectra.splice(source.index, 1);
+        if(source.droppableId == "toKeep" && destination.droppableId == "discard") {
+            //datasetToView.discardSpectra.push(datasetToView.spectra[source.index]);
+            let removedItem = datasetToView.spectra.splice(source.index, 1);
+            datasetToView.discardSpectra.push(removedItem[0]);
+        } else if(source.droppableId == "discard" && destination.droppableId == "toKeep") {
+            let removedItem = datasetToView.discardSpectra.splice(source.index, 1);
+            datasetToView.spectra.push(removedItem[0]);
         }
+
+        forceUpdate();
     
         /*if (source.droppableId === destination.droppableId) {
             const items = reorder(
@@ -110,13 +117,13 @@ export function App(props: AppProps) {
             <React.Suspense fallback='Loading data...'>
                 <div className={"root"}>
             <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId="unsorted">
+                <Droppable droppableId="toKeep">
                     {(provided, snapshot) => (
                         <div
                             ref={provided.innerRef}
                             style={getListStyle(snapshot.isDraggingOver)}>
                                 <h3>To Keep</h3>
-                            {datasetToView.unsortedSpectra.map((spectrum, index) => (
+                            {datasetToView.spectra.map((spectrum, index) => (
                                 <Draggable
                                     key={spectrum.index}
                                     draggableId={"spectrum-" + spectrum.index}
@@ -142,13 +149,13 @@ export function App(props: AppProps) {
                 <div style={{position: "fixed", top: 50, left: 400}}>
                     <SpectrumView spectrumToView={spectrumToView} width={spectrumWidth*4} height={spectrumHeight*5}></SpectrumView>
                 </div>
-                <Droppable droppableId="toKeep">
+                <Droppable droppableId="discard">
                     {(provided, snapshot) => (
                         <div
                             ref={provided.innerRef}
                             style={getListStyle(snapshot.isDraggingOver)}>
                             <h3>To Discard</h3>
-                            {datasetToView.toKeepSpectra.map((spectrum, index) => (
+                            {datasetToView.discardSpectra.map((spectrum, index) => (
                                 <Draggable
                                     key={spectrum.index}
                                     draggableId={"spectrum-" + spectrum.index}
@@ -173,18 +180,8 @@ export function App(props: AppProps) {
                 </Droppable>
             </DragDropContext>
             </div>
-            <DatasetView datasetToView={datasetToView} width={700} height={500}></DatasetView>
-            <div className="spectrum-list">
-                {
-                    Array.from(datasetToView.unsortedSpectra).map((spectrum, index) => {
-                        return (
-                            <SpectrumView key={index} spectrumToView={spectrum} width={100} height={100}></SpectrumView>
-                        )
-                    })
-                }
-                
-            </div>
             <DatasetTable datasets={datasets} onDatasetSelected={selectDataset}></DatasetTable>
+            <button onClick={()=>{saveJSON(datasets, "sortedSpectra.json")}}>Download</button>
             </React.Suspense>
         );
     } else {
@@ -196,6 +193,49 @@ export function App(props: AppProps) {
     }
     
 }
+
+function saveJSON(datasets: Map<string, Dataset>, filename: string){
+    var datasetLists = Array()
+
+    datasets.forEach((dataset, key) => {
+        var toKeep = Array();
+        var toDiscard = Array();
+    
+        dataset.spectra.forEach(spectrum => {
+            toKeep.push(spectrum.index);
+        })
+    
+        dataset.discardSpectra.forEach(spectrum => {
+            toDiscard.push(spectrum.index);
+        })
+    
+        var obj = {dataset: key, toKeep: toKeep, toDiscard: toDiscard}
+
+        datasetLists.push(obj)
+    })
+
+    var blob = new Blob([JSON.stringify(datasetLists, undefined, 4)], {type: 'text/json'}),
+        e    = document.createEvent('MouseEvents'),
+        a    = document.createElement('a')
+
+    a.download = filename
+    a.href = window.URL.createObjectURL(blob)
+    a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':')
+    e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+    a.dispatchEvent(e)
+}
+
+// <DatasetView datasetToView={datasetToView} width={700} height={500}></DatasetView>
+// <div className="spectrum-list">
+//     {
+//         Array.from(datasetToView.unsortedSpectra).map((spectrum, index) => {
+//             return (
+//                 <SpectrumView key={index} spectrumToView={spectrum} width={100} height={100}></SpectrumView>
+//             )
+//         })
+//     }
+    
+// </div>
 
 const grid = 8;
 

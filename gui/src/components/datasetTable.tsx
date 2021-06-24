@@ -21,6 +21,8 @@ class DatasetTable extends React.Component<DatasetTableProps> {
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Spectra to Keep</th>
+                            <th>Spectra to Discard</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -30,6 +32,12 @@ class DatasetTable extends React.Component<DatasetTableProps> {
                                 <tr key={`${dataset.name}`} onClick={(event) => {this.props.onDatasetSelected(this.props.datasets.get(dataset.name))}}>
                                     <td>
                                         {dataset.name}
+                                    </td>
+                                    <td align={'right'}>
+                                        {dataset.spectra.length}
+                                    </td>
+                                    <td align={'right'}>
+                                        {dataset.discardSpectra.length}
                                     </td>
                                 </tr>
                             )

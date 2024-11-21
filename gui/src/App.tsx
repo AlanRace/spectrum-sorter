@@ -168,7 +168,7 @@ export function App(props: AppProps) {
                                             style={getItemStyle(
                                                 snapshot.isDragging,
                                                 provided.draggableProps.style
-                                            )}>
+                                            )} onClick={()=>{setSpectrumToView(spectrum)}}>
                                             <SpectrumView key={index} spectrumToView={spectrum} width={spectrumWidth} height={spectrumHeight}></SpectrumView>
                                         </div>
                                     )}
